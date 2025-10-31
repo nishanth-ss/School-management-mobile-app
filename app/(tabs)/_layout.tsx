@@ -1,33 +1,62 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+// app/(tabs)/_layout.tsx
+import { Tabs, useRouter } from "expo-router";
+import { CreditCard, LogOut, User } from "lucide-react-native";
+import { TouchableOpacity } from "react-native";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
+  const router = useRouter();
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        headerShown: true,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: "#fff",
+        tabBarInactiveTintColor: "rgba(255, 255, 255, 0.4)",
+        tabBarStyle: {
+          backgroundColor: "#40407a",
+          borderTopWidth: 0.5,
+          height: 60,
+          paddingBottom: 10,
+          paddingTop: 5,
+        },
+      }}
+    >
       <Tabs.Screen
-        name="index"
+        name="profile"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: "Profile",
+          tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
+          headerStyle: {
+            backgroundColor: "#40407a",
+          },
+          headerTitleStyle: {
+            color: "#fff",
+          },
+          headerRight: () => (
+            <TouchableOpacity
+              onPress={() => {
+                // 👉 Replace with your logout logic
+                alert("Logging out...");
+                router.replace("/login"); // or your login route
+              }}
+              style={{ marginRight: 15 }}
+            >
+              <LogOut color="#fff" size={22} />
+            </TouchableOpacity>
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="transaction"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: "Transaction",
+          tabBarIcon: ({ color, size }) => <CreditCard color={color} size={size} />,
+          headerStyle: {
+            backgroundColor: "#40407a",
+          },
+          headerTitleStyle: {
+            color: "#fff",
+          },
         }}
       />
     </Tabs>
