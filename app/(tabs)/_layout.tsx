@@ -2,9 +2,12 @@
 import { Tabs, useRouter } from "expo-router";
 import { CreditCard, LogOut, User } from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+
   return (
     <Tabs
       screenOptions={{
@@ -15,9 +18,10 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: "#40407a",
           borderTopWidth: 0.5,
-          height: 60,
-          paddingBottom: 10,
+          height: 60 + insets.bottom, 
+          paddingBottom: insets.bottom, 
           paddingTop: 5,
+          borderTopColor: "rgba(255,255,255,0.2)",
         },
       }}
     >
@@ -26,18 +30,13 @@ export default function TabLayout() {
         options={{
           title: "Profile",
           tabBarIcon: ({ color, size }) => <User color={color} size={size} />,
-          headerStyle: {
-            backgroundColor: "#40407a",
-          },
-          headerTitleStyle: {
-            color: "#fff",
-          },
+          headerStyle: { backgroundColor: "#40407a" },
+          headerTitleStyle: { color: "#fff" },
           headerRight: () => (
             <TouchableOpacity
               onPress={() => {
-                // 👉 Replace with your logout logic
                 alert("Logging out...");
-                router.replace("/login"); // or your login route
+                router.replace("/login");
               }}
               style={{ marginRight: 15 }}
             >
@@ -46,17 +45,14 @@ export default function TabLayout() {
           ),
         }}
       />
+
       <Tabs.Screen
         name="transaction"
         options={{
           title: "Transaction",
           tabBarIcon: ({ color, size }) => <CreditCard color={color} size={size} />,
-          headerStyle: {
-            backgroundColor: "#40407a",
-          },
-          headerTitleStyle: {
-            color: "#fff",
-          },
+          headerStyle: { backgroundColor: "#40407a" },
+          headerTitleStyle: { color: "#fff" },
         }}
       />
     </Tabs>

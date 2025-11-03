@@ -1,0 +1,1 @@
+export const BASE_URL = "https://ggwsx2fb-5000.inc1.devtunnels.ms/";

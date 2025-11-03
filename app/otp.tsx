@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     height: 55,
     textAlign: "center",
     fontSize: 22,
+    marginRight: 5
   },
   button: {
     width: "100%",

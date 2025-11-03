@@ -1,18 +1,25 @@
+import { loginUser } from "@/src/services/authService";
 import { Stack, useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function LoginScreen() {
   const [register_no, setRegisterNo] = useState("");
-  const [password, setPassword] = useState("");
   const router = useRouter();
 
-  const handleLogin = () => {
-    // TODO: Replace with your authentication logic
-    if (register_no === "STUD001" && password === "1234") {
-      router.replace("/otp");
-    } else {
-      alert("Invalid credentials");
+  const handleLogin = async () => {
+    try {
+      const res = await loginUser(register_no);
+      if (res?.token) {
+        await SecureStore.setItemAsync("authToken", res.token);
+        await SecureStore.setItemAsync("register_no", register_no);
+        router.replace("/otp");
+      } else {
+        console.warn("⚠️ No token received from server");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
     }
   };
 
@@ -21,7 +28,7 @@ export default function LoginScreen() {
       {/* Hide header */}
       <Stack.Screen options={{ headerShown: false }} />
       <View style={styles.innerContainer}>
-      <Text style={styles.title}>Welcome to School Management</Text>
+        <Text style={styles.title}>Welcome to School Management</Text>
 
 
         <TextInput
@@ -31,14 +38,6 @@ export default function LoginScreen() {
           onChangeText={setRegisterNo}
           autoCapitalize="none"
           keyboardType="default"
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          value={password}
-          onChangeText={setPassword}
-          secureTextEntry
         />
 
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
