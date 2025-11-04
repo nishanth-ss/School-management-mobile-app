@@ -1,8 +1,8 @@
-import { loginUser } from "@/src/services/authService";
 import { Stack, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { loginUser } from "../src/services/authService";
 
 export default function LoginScreen() {
   const [register_no, setRegisterNo] = useState("");

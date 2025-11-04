@@ -1,5 +1,6 @@
 // app/(tabs)/_layout.tsx
 import { Tabs, useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { CreditCard, LogOut, User } from "lucide-react-native";
 import { TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -7,6 +8,12 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 export default function TabLayout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+
+  const handleLogout = () => {
+   SecureStore.deleteItemAsync("register_no");
+   SecureStore.deleteItemAsync("token");
+   router.replace("/login");
+  };
 
   return (
     <Tabs
@@ -35,8 +42,7 @@ export default function TabLayout() {
           headerRight: () => (
             <TouchableOpacity
               onPress={() => {
-                alert("Logging out...");
-                router.replace("/login");
+                handleLogout();
               }}
               style={{ marginRight: 15 }}
             >

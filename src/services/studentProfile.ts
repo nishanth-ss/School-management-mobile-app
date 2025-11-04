@@ -1,5 +1,6 @@
 // app/services/studentService.ts
-import api from "../api/axiosInstance";
+
+import api from "../../app/api/axiosInstance";
 
 export const getStudentProfile = async (regNo: string) => {
   const response = await api.get(`/student/profile/${regNo}`);
