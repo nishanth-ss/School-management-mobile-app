@@ -1,5 +1,6 @@
 // app/services/authService.ts
-import api from "../api/axiosInstance";
+
+import api from "../../app/api/axiosInstance";
 
 export const loginUser = async (register_no: string) => {
   const response = await api.post("/user/login", {

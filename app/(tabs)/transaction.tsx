@@ -1,4 +1,5 @@
 import { getStudentTransactions } from "@/src/services/studentProfile";
+import * as SecureStore from "expo-secure-store";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -20,8 +21,9 @@ export default function TransactionsScreen() {
   });
 
   const fetchTransactions = async (page: number) => {
+    const regNo = await SecureStore.getItemAsync("register_no");
     try {
-      const res = await getStudentTransactions("STU001", page, pagination.pageSize);
+      const res = await getStudentTransactions(regNo || "", page, pagination.pageSize);
       setData(res.transactions || []);
       setPagination((prev) => ({
         ...prev,
