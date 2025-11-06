@@ -16,12 +16,27 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
 
-  const getStudentProfileData = async () => {
+ const getStudentProfileData = async () => {
+  try {
     const regNo = await SecureStore.getItemAsync("register_no");
+    if (!regNo) {
+      setLoading(false);
+      return;
+    }
+
     const res = await getStudentProfile(regNo || "");
-    setData(res.data || null);
+    // ✅ Guard for empty or undefined response
+    if (res && res.data) {
+      setData(res.data);
+    } else {
+      setData(null);
+    }
+  } catch (error) {
+    setData(null);
+  } finally {
     setLoading(false);
-  };
+  }
+};
 
   useEffect(() => {
     getStudentProfileData();
@@ -50,7 +65,7 @@ export default function HomeScreen() {
       ? {
         uri: data.pro_pic.file_url.startsWith("http")
           ? data.pro_pic.file_url
-          : `${BASE_URL}/${data.pro_pic.file_url.replace(/\\/g, "/")}`,
+          : `${BASE_URL}${data.pro_pic.file_url.replace(/\\/g, "/")}`,
       }
       : require("../../assets/images/react-logo.png");
 
@@ -88,10 +103,10 @@ export default function HomeScreen() {
             <Text>Academic Year: {data.class_info?.academic_year}</Text>
           </View>
 
-          <View style={styles.subCard}>
+          {/* <View style={styles.subCard}>
             <Text style={styles.subtitle}>Location</Text>
             <Text>Location Name: {data.location_id?.locationName}</Text>
-          </View>
+          </View> */}
         </View>
       </ScrollView>
     </SafeAreaView>

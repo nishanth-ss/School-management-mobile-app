@@ -1,15 +1,79 @@
 // app/services/studentService.ts
 
-import api from "../../app/api/axiosInstance";
+import { getBaseUrl } from "@/src/api/apiConfig";
+import axios from "axios";
+import * as SecureStore from "expo-secure-store";
+import Toast from "react-native-toast-message";
 
-export const getStudentProfile = async (regNo: string) => {
-  const response = await api.get(`/student/profile/${regNo}`);
-  return response.data;
+const handleApiError = (error: any, context: string) => {
+  let message = "Something went wrong";
+
+  if (axios.isAxiosError(error)) {
+    if (error.response) {
+      message = error.response.data?.message || `Server error while fetching ${context}`;
+      console.error(`❌ [${context}] Server Error:`, error.response.data);
+    } else if (error.request) {
+      message = `No response from server while fetching ${context}`;
+    } else {
+      message = `Request setup failed for ${context}`;
+    }
+  } else {
+    message = `Unexpected error while fetching ${context}`;
+  }
+
+  // 💥 Show the toast!
+  Toast.show({
+    type: "error",
+    text1: "Error",
+    text2: message,
+    position: "bottom",
+  });
+
+  throw new Error(message);
 };
 
-export const getStudentTransactions = async (regNo: string, page = 1, pageSize = 10) => {
-  const response = await api.get(`/student/student-transaction/${regNo}`, {
-    params: { page, pageSize },
-  });
-  return response.data;
+
+export const getStudentProfile = async (regNo: string) => {
+  if (!regNo) {
+    return;
+  }
+  try {
+    const baseUrl = getBaseUrl().trim();
+    const token = await SecureStore.getItemAsync("authToken");
+    const url = `${baseUrl}/student/profile/${regNo}`;
+
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await axios.get(url, { headers });
+
+    return response.data;
+  } catch (error: any) {
+    handleApiError(error, "Student Profile");
+    throw error; // ✅ This ensures the caller gets an exception
+  }
+};
+
+
+export const getStudentTransactions = async (
+  regNo: string,
+  page = 1,
+  pageSize = 10
+) => {
+  if(!regNo){
+    return;
+}
+  try {
+    const baseUrl = getBaseUrl().trim();
+    const token = await SecureStore.getItemAsync("authToken");
+    const url = `${baseUrl}/student/student-transaction/${regNo}`;
+
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await axios.get(url, {
+      headers,
+      params: { page, pageSize },
+    });
+
+    return response.data;
+  } catch (error: any) {
+    handleApiError(error, "Student Transactions");
+  }
 };

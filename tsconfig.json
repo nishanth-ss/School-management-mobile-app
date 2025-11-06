@@ -14,7 +14,7 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ],
+, "src/services/authService.js", "app/login.jsx"  ],
    "exclude": [
     "node_modules"           // ✅ don’t scan node_modules
   ]
