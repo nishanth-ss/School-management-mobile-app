@@ -19,7 +19,8 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.nishanth_sekar.school_management_mobile_app"
     },
     "web": {
       "output": "static",
@@ -48,6 +49,12 @@
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_ERROR_RECOVERY"
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "0ea40f4d-25db-4345-bd9e-d2ad54ec04ad"
+      }
     }
   }
 }

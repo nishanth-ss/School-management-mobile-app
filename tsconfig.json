@@ -3,6 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "skipLibCheck": true,
+    "allowJs": true,
+    "checkJs": false,
     "paths": {
       "@/*": [
         "./*"
@@ -14,8 +16,8 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "src/services/authService.js", "app/login.jsx"  ],
-   "exclude": [
+  ],
+  "exclude": [
     "node_modules"           // ✅ don’t scan node_modules
   ]
 }

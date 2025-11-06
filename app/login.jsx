@@ -14,7 +14,15 @@ export default function LoginScreen() {
   const router = useRouter();
 
   useEffect(() => {
-    loadBaseUrl(); // Load any previously saved base URL
+    const initialize = async () => {
+      try {
+        await loadBaseUrl();
+      } catch (error) {
+        console.error('Failed to load base URL:', error);
+      }
+    };
+    
+    initialize();
   }, []);
 
   const handleSearch = async (text) => {
@@ -166,11 +174,70 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 20, backgroundColor: "#40407a" },
-  innerContainer: { alignItems: "center", backgroundColor: "#fff", padding: 20, borderRadius: 10 },
-  title: { fontSize: 28, fontWeight: "600", textAlign: "center", marginBottom: 20, color: "#000" },
-  input: { borderWidth: 1, borderColor: "#ccc", borderRadius: 8, padding: 10, marginBottom: 10, width: "100%" },
-  listItem: { padding: 10, borderBottomWidth: 1, borderBottomColor: "#eee", width: "100%" },
-  button: { width: "100%", padding: 10, borderRadius: 8, backgroundColor: "#40407a", marginTop: 20 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "600", textAlign: "center" },
+  container: { 
+    flex: 1, 
+    justifyContent: "center", 
+    padding: 20, 
+    backgroundColor: "#40407a" 
+  },
+  innerContainer: { 
+    alignItems: "center", 
+    backgroundColor: "#fff", 
+    padding: 20, 
+    borderRadius: 10,
+    // Using modern shadow syntax
+    elevation: 3, // for Android
+    shadowColor: "#000", // for iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },
+  title: { 
+    fontSize: 28, 
+    fontWeight: "600", 
+    textAlign: "center", 
+    marginBottom: 20, 
+    color: "#000" 
+  },
+  input: { 
+    borderWidth: 1, 
+    borderColor: "#ccc", 
+    borderRadius: 8, 
+    padding: 10, 
+    marginBottom: 10, 
+    width: "100%",
+    backgroundColor: '#fff',
+    // Adding shadow to input for better visibility
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  listItem: { 
+    padding: 10, 
+    borderBottomWidth: 1, 
+    borderBottomColor: "#eee", 
+    width: "100%",
+    backgroundColor: '#fff',
+  },
+  button: { 
+    width: "100%", 
+    padding: 10, 
+    borderRadius: 8, 
+    backgroundColor: "#40407a", 
+    marginTop: 20,
+    // Adding shadow to button
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 1.41,
+  },
+  buttonText: { 
+    color: "#fff", 
+    fontSize: 16, 
+    fontWeight: "600", 
+    textAlign: "center" 
+  },
 });

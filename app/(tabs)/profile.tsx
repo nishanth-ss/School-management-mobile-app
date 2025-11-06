@@ -26,6 +26,7 @@ export default function HomeScreen() {
 
     const res = await getStudentProfile(regNo || "");
     // ✅ Guard for empty or undefined response
+    console.log(res.data);
     if (res && res.data) {
       setData(res.data);
     } else {
@@ -79,6 +80,7 @@ export default function HomeScreen() {
             <View>
               <Text style={styles.name}>{data.student_name}</Text>
               <Text style={styles.regNo}>Reg No: {data.registration_number}</Text>
+              <Text style={styles.depositeAmount}>Balance: ₹ {data.deposite_amount}</Text>
             </View>
           </View>
 
@@ -145,7 +147,11 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   regNo: {
-    color: "#777",
+    color: "#333",
+    marginTop: 4,
+  },
+  depositeAmount: {
+    color: "#008000",
     marginTop: 4,
   },
   divider: {
