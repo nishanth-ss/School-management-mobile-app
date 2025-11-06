@@ -2,18 +2,44 @@
 import { Tabs, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { CreditCard, LogOut, User } from "lucide-react-native";
-import { TouchableOpacity } from "react-native";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function TabLayout() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const token = await SecureStore.getItemAsync("authToken");
+        const regNo = await SecureStore.getItemAsync("register_no");
+        if (!token || !regNo) {
+          // ⛔ No token → go to login
+          router.replace("/login");
+        }
+      } catch (err) {
+        console.error("Error checking auth:", err);
+        router.replace("/login");
+      } finally {
+        setLoading(false);
+      }
+    };
+    checkAuth();
+  }, []);
+
   const handleLogout = () => {
    SecureStore.deleteItemAsync("register_no");
    SecureStore.deleteItemAsync("token");
    router.replace("/login");
   };
+
+  if (loading) {
+    return <ActivityIndicator size="large" color="#40407a" />;
+  }
 
   return (
     <Tabs

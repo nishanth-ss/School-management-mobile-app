@@ -28,7 +28,7 @@ export default function TransactionsScreen() {
       setPagination((prev) => ({
         ...prev,
         page: pagination.page,
-        totalPages: res.total || Math.ceil(res.total / pagination.pageSize) || 1,
+        totalPages: res.totalPages || Math.ceil(res.totalPages / pagination.pageSize) || 1,
       }));
     } catch (err) {
       console.error("Fetch Error:", err);
