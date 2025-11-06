@@ -80,7 +80,7 @@ export default function TransactionsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { flex: 1 }]} edges={[]}>
         <ActivityIndicator size="large" color="#40407a" />
         <Text>Loading student transactions...</Text>
       </SafeAreaView>
@@ -96,7 +96,7 @@ export default function TransactionsScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { flex: 1 }]} edges={[]}>
       <FlatList
         data={data}
         keyExtractor={(item, index) => item._id || index.toString()}
@@ -150,7 +150,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    paddingTop: 0,
     backgroundColor: "#fff",
   },
   card: {
@@ -196,7 +195,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 10,
+    // paddingVertical: 10,
   },
   pageButton: {
     backgroundColor: "#40407a",

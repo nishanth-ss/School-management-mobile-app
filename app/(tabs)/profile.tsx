@@ -16,28 +16,28 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
 
- const getStudentProfileData = async () => {
-  try {
-    const regNo = await SecureStore.getItemAsync("register_no");
-    if (!regNo) {
-      setLoading(false);
-      return;
-    }
+  const getStudentProfileData = async () => {
+    try {
+      const regNo = await SecureStore.getItemAsync("register_no");
+      if (!regNo) {
+        setLoading(false);
+        return;
+      }
 
-    const res = await getStudentProfile(regNo || "");
-    // ✅ Guard for empty or undefined response
-    console.log(res.data);
-    if (res && res.data) {
-      setData(res.data);
-    } else {
+      const res = await getStudentProfile(regNo || "");
+      // ✅ Guard for empty or undefined response
+      console.log(res.data);
+      if (res && res.data) {
+        setData(res.data);
+      } else {
+        setData(null);
+      }
+    } catch (error) {
       setData(null);
+    } finally {
+      setLoading(false);
     }
-  } catch (error) {
-    setData(null);
-  } finally {
-    setLoading(false);
-  }
-};
+  };
 
   useEffect(() => {
     getStudentProfileData();
@@ -71,8 +71,8 @@ export default function HomeScreen() {
       : require("../../assets/images/react-logo.png");
 
   return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+<SafeAreaView style={[styles.container, { flex: 1 }]} edges={[]}>
+      <ScrollView style={{ flex: 1 }} contentContainerStyle={styles.scrollContent}>
         <View style={styles.card}>
           {/* 🖼 Profile header with image */}
           <View style={styles.profileHeader}>
@@ -80,7 +80,7 @@ export default function HomeScreen() {
             <View>
               <Text style={styles.name}>{data.student_name}</Text>
               <Text style={styles.regNo}>Reg No: {data.registration_number}</Text>
-              <Text style={styles.depositeAmount}>Balance: ₹ {data.deposite_amount}</Text>
+              <Text style={styles.depositeAmount}>Balance: ₹{data.deposite_amount}</Text>
             </View>
           </View>
 
@@ -118,7 +118,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 20,
     backgroundColor: "#fff",
   },
   scrollContent: {
