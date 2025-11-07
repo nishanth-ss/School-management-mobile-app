@@ -1,9 +1,33 @@
+// app/(tabs)/subscription.tsx  (or wherever you keep it)
 import { Stack, useRouter } from "expo-router";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import * as SecureStore from "expo-secure-store";
+import { useState } from "react";
+import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getBaseUrl } from "../src/api/apiConfig";
+import { useRazorpay } from "../src/hooks/useRazorpay";
 
 export default function SubscriptionScreen() {
   const router = useRouter();
+  const { startPayment } = useRazorpay();
+  const [loading, setLoading] = useState(false);
+
+  const handleSubscribe = async () => {
+    console.log(getBaseUrl());
+    
+    setLoading(true);
+    const studentId = await SecureStore.getItemAsync("studentId"); // you already have it somewhere
+    const amount = 100; // ₹100 → 10000 paise
+
+    const ok = await startPayment(studentId, amount);
+    setLoading(false);
+
+    if (ok) {
+      // Payment verified → go to OTP / home
+      router.replace("/otp");
+    }
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Stack.Screen options={{ headerShown: false }} />
@@ -14,14 +38,22 @@ export default function SubscriptionScreen() {
         </Text>
 
         <View style={styles.priceBox}>
-          <Text style={styles.priceText}>💎 ₹100 / Year</Text>
+          <Text style={styles.priceText}>₹100 / Year</Text>
         </View>
 
-        <TouchableOpacity style={styles.button} onPress={() => {router.replace("/otp")}}>
-          <Text style={styles.buttonText}>Subscribe Now</Text>
+        <TouchableOpacity
+          style={[styles.button, loading && styles.buttonDisabled]}
+          onPress={handleSubscribe}
+          disabled={loading}
+        >
+          {loading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Subscribe Now</Text>
+          )}
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => {router.replace("/login")}}>
+        <TouchableOpacity onPress={() => router.replace("/login")}>
           <Text style={styles.skipText}>Maybe Later</Text>
         </TouchableOpacity>
       </View>
@@ -89,4 +121,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textDecorationLine: "underline",
   },
+  buttonDisabled: { opacity: 0.6 },
 });

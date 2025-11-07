@@ -16,7 +16,7 @@ export const request = async (endpoint, method = "GET", data = null, headers = {
     return res.data;
   } catch (err) {
     if (err.response) {
-      console.error("🔹 Server responded with:", err.response.status, err.response.data);
+      // console.error("🔹 Server responded with:", err.response.status, err.response.data);
       // Return structured error instead of throwing
       return {
         success: false,

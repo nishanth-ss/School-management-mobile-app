@@ -1,10 +1,19 @@
 import { loadBaseUrl, setBaseUrl } from "@/src/api/apiConfig";
 import { Stack, useRouter } from "expo-router";
-import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
+import * as SecureStore from 'expo-secure-store';
+import { useEffect, useRef, useState } from "react";
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { loginUser, searchLocation } from "../src/services/authService";
+
+const debounce = (func, delay) => {
+  let timeout;
+  return (...args) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), delay);
+  };
+};
+
 
 export default function LoginScreen() {
   const [register_no, setRegisterNo] = useState("");
@@ -21,30 +30,38 @@ export default function LoginScreen() {
         console.error('Failed to load base URL:', error);
       }
     };
-    
+
     initialize();
   }, []);
 
-  const handleSearch = async (text) => {
-    setSearch(text);
-    if (text.length >= 2) {
+  const debouncedSearch = useRef(
+    debounce(async (text) => {
       try {
         const res = await searchLocation(text);
         console.log("Search response:", res);
+
         if (res?.data?.length) {
-          setSchools(res.data); // ✅ only store the array of schools
+          setSchools(res.data);
         } else {
-          setSchools([]); // no results
+          setSchools([]);
         }
       } catch (err) {
         console.error("Search error:", err);
         setSchools([]);
       }
+    }, 500) // ← 500ms delay
+  ).current;
+
+
+  const handleSearch = (text) => {
+    setSearch(text);
+
+    if (text.length >= 2) {
+      debouncedSearch(text);
     } else {
       setSchools([]);
     }
   };
-
 
   const handleSelectSchool = async (school) => {
     console.log(school);
@@ -57,57 +74,23 @@ export default function LoginScreen() {
   const handleLogin = async () => {
     try {
       const res = await loginUser(register_no);
-      console.log("Login response:", res?.user);
-
-      // ✅ Handle error responses first
-      if (res.status === 400) {
-        Toast.show({
-          type: "error",
-          text1: "Login Failed",
-          text2: "Invalid credentials. Please check your register number.",
-          position: "bottom",
-        });
-        return;
-      } else if (!res || res.success === false) {
-        const message =
-          res?.message ||
-          (res?.status === 400
-            ? "Invalid credentials. Please check your register number."
-            : "Something went wrong. Please try again.");
-
-        Toast.show({
-          type: "error",
-          text1: "Login Failed",
-          text2: message,
-          position: "bottom",
-        });
-
-        return; // ⛔ stop execution here
-      }
-
-      // ✅ Handle success case
-      if (res?.token) {
-        await SecureStore.setItemAsync("authToken", res.token);
+      console.log("Login response:", res);
+      if (res?.user) {
         await SecureStore.setItemAsync("register_no", register_no);
-        await SecureStore.setItemAsync(
-          "subscription",
-          res?.user?.subscription ? "true" : "false"
-        );
-        if(res?.user?.subscription){
-          router.replace("/otp");
-        }else{
+        if (res?.user?.subscription === false) {
           router.replace("/subscription");
+        } else {
+          router.replace("/otp");
         }
       } else {
         Toast.show({
           type: "error",
           text1: "Login Failed",
-          text2: "No token received from server.",
+          text2: res?.message || "No token received from server.",
           position: "bottom",
         });
       }
     } catch (error) {
-      // This shouldn't normally happen if request() handles errors
       console.error("Unexpected login error:", error);
       Toast.show({
         type: "error",
@@ -132,7 +115,7 @@ export default function LoginScreen() {
               value={search}
               onChangeText={handleSearch}
             />
-            {schools.length > 0 || search.length >= 2 ? (
+            {schools.length > 0 ? (
               <FlatList
                 data={schools}
                 keyExtractor={(item) => item._id}
@@ -142,15 +125,10 @@ export default function LoginScreen() {
                   </TouchableOpacity>
                 )}
               />
-            ) : (
-              // ✅ Show “No results” only when:
-              // - user typed at least 2 characters
-              // - and no results returned
-              search.length >= 2 && (
-                <Text style={{ textAlign: "center", color: "gray", marginTop: 10 }}>
-                  No results found
-                </Text>
-              )
+            ) : search.length >= 2 && (
+              <Text style={{ textAlign: "center", color: "gray", marginTop: 10 }}>
+                No results found
+              </Text>
             )}
           </>
         ) : (
@@ -166,6 +144,10 @@ export default function LoginScreen() {
             <TouchableOpacity style={styles.button} onPress={handleLogin}>
               <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
+
+            <TouchableOpacity style={styles.btnlogin} onPress={() => {setSelectedSchool(null),setSearch("")}}>
+              <Text style={styles.buttonTextLogin}>Change School</Text>
+            </TouchableOpacity>
           </>
         )}
       </View>
@@ -174,16 +156,16 @@ export default function LoginScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    justifyContent: "center", 
-    padding: 20, 
-    backgroundColor: "#40407a" 
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#40407a"
   },
-  innerContainer: { 
-    alignItems: "center", 
-    backgroundColor: "#fff", 
-    padding: 20, 
+  innerContainer: {
+    alignItems: "center",
+    backgroundColor: "#fff",
+    padding: 20,
     borderRadius: 10,
     // Using modern shadow syntax
     elevation: 3, // for Android
@@ -192,19 +174,19 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },
-  title: { 
-    fontSize: 28, 
-    fontWeight: "600", 
-    textAlign: "center", 
-    marginBottom: 20, 
-    color: "#000" 
+  title: {
+    fontSize: 28,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#000"
   },
-  input: { 
-    borderWidth: 1, 
-    borderColor: "#ccc", 
-    borderRadius: 8, 
-    padding: 10, 
-    marginBottom: 10, 
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 8,
+    padding: 10,
+    marginBottom: 10,
     width: "100%",
     backgroundColor: '#fff',
     // Adding shadow to input for better visibility
@@ -214,18 +196,18 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
   },
-  listItem: { 
-    padding: 10, 
-    borderBottomWidth: 1, 
-    borderBottomColor: "#eee", 
+  listItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
     width: "100%",
     backgroundColor: '#fff',
   },
-  button: { 
-    width: "100%", 
-    padding: 10, 
-    borderRadius: 8, 
-    backgroundColor: "#40407a", 
+  button: {
+    width: "100%",
+    padding: 10,
+    borderRadius: 8,
+    backgroundColor: "#40407a",
     marginTop: 20,
     // Adding shadow to button
     elevation: 2,
@@ -234,10 +216,29 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.2,
     shadowRadius: 1.41,
   },
-  buttonText: { 
-    color: "#fff", 
-    fontSize: 16, 
-    fontWeight: "600", 
-    textAlign: "center" 
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center"
   },
+  btnlogin:{
+    marginTop: 20,
+    color: "#40407a",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderColor: "#40407a",
+    borderWidth: 1,
+    width: "100%",
+    padding: 10,
+  },
+  buttonTextLogin:{
+    color: "#40407a",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",    
+  }
 });

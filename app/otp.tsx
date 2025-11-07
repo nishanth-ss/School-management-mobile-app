@@ -1,11 +1,24 @@
 import { Stack, useRouter } from "expo-router";
-import { useRef, useState } from "react";
+import * as SecureStore from "expo-secure-store";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import Toast from "react-native-toast-message";
+import { loginWithOtp } from "../src/services/authService";
 
 export default function OtpScreen() {
-  const [otp, setOtp] = useState(["", "", "", "", "", ""]);
+  const [otp, setOtp] = useState(["", "", "", ""]);
   const inputs = useRef<TextInput[]>([]);
+  const [register_no, setRegisterNo] = useState<string | null>(null);
   const router = useRouter();
+
+   useEffect(() => {
+    const loadRegisterNo = async () => {
+      const regNo = await SecureStore.getItemAsync("register_no");
+      setRegisterNo(regNo);
+    };
+    loadRegisterNo();
+  }, []);
+
 
   const handleChange = (text: string, index: number) => {
     // Update OTP value
@@ -14,7 +27,7 @@ export default function OtpScreen() {
     setOtp(newOtp);
 
     // Auto move to next input
-    if (text && index < 5) {
+    if (text && index < 3) {
       inputs.current[index + 1]?.focus();
     }
   };
@@ -25,13 +38,29 @@ export default function OtpScreen() {
     }
   };
 
-  const handleVerifyOtp = () => {
+  const handleVerifyOtp = async () => {
     const enteredOtp = otp.join("");
-    if (enteredOtp === "123456") {
-      alert("✅ OTP verified successfully!");
-      router.replace("/(tabs)/profile");
+    const res = await loginWithOtp(register_no,enteredOtp);
+    console.log("Login response:", res);
+    if (res?.user) {
+      await SecureStore.setItemAsync("authToken", res.token);
+      await SecureStore.setItemAsync("studentId", res?.user?.id);
+      await SecureStore.setItemAsync(
+        "subscription",
+        res?.user?.subscription ? "true" : "false"
+      );
+      if(res?.user?.subscription){
+        router.replace("/profile");
+      }else{
+        router.replace("/subscription");
+      }
     } else {
-      alert("❌ Invalid OTP");
+      Toast.show({
+        type: "error",
+        text1: res?.message,
+        text2: "Login Failed",
+        position: "bottom",
+      });
     }
   };
 
@@ -62,6 +91,10 @@ export default function OtpScreen() {
 
         <TouchableOpacity style={styles.button} onPress={handleVerifyOtp}>
           <Text style={styles.buttonText}>Verify OTP</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity style={styles.btnlogin} onPress={() => router.replace("/login")}>
+          <Text style={styles.buttonTextLogin}>Back to Login</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -103,11 +136,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 8,
-    width: 45,
+    width: 60,
     height: 55,
     textAlign: "center",
     fontSize: 22,
-    marginRight: 5
+    marginRight: 10
   },
   button: {
     width: "100%",
@@ -122,4 +155,23 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center",
   },
+  btnlogin:{
+    marginTop: 20,
+    color: "#40407a",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",
+    backgroundColor: "#fff",
+    borderRadius: 8,
+    borderColor: "#40407a",
+    borderWidth: 1,
+    width: "100%",
+    padding: 10,
+  },
+  buttonTextLogin:{
+    color: "#40407a",
+    fontSize: 16,
+    fontWeight: "600",
+    textAlign: "center",    
+  }
 });
