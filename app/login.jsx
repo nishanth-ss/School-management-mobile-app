@@ -77,6 +77,7 @@ export default function LoginScreen() {
       console.log("Login response:", res);
       if (res?.user) {
         await SecureStore.setItemAsync("register_no", register_no);
+        await SecureStore.setItemAsync("studentId", res?.user?.id);
         if (res?.user?.subscription === false) {
           router.replace("/subscription");
         } else {

@@ -47,7 +47,7 @@ export const verifyPayment = async (payload: {
   razorpay_signature: string;
 }) => {
   try {
-    await API.post("/payment/verify", payload);
+    await API.post("/payment/verify", {...payload,studentId: await SecureStore.getItemAsync("studentId")});
   } catch (e: any) {
     console.error("verifyPayment failed:", e);
     Toast.show({ type: "error", text1: "Error", text2: "Payment verification failed" });

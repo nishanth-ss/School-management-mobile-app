@@ -4,8 +4,10 @@ import * as SecureStore from "expo-secure-store";
 import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 import { getBaseUrl } from "../src/api/apiConfig";
 import { useRazorpay } from "../src/hooks/useRazorpay";
+import { loginUser } from "../src/services/authService";
 
 export default function SubscriptionScreen() {
   const router = useRouter();
@@ -14,17 +16,71 @@ export default function SubscriptionScreen() {
 
   const handleSubscribe = async () => {
     console.log(getBaseUrl());
-    
     setLoading(true);
-    const studentId = await SecureStore.getItemAsync("studentId"); // you already have it somewhere
-    const amount = 100; // ₹100 → 10000 paise
+    try {
+      const studentId = await SecureStore.getItem("studentId");
+      const amount = 100; // ₹100 → 10000 paise
+      console.log("studentId", studentId);
 
-    const ok = await startPayment(studentId, amount);
-    setLoading(false);
+      const ok = await startPayment(studentId, amount);
+      setLoading(false);
 
-    if (ok) {
-      // Payment verified → go to OTP / home
-      router.replace("/otp");
+      if (ok) {
+        // Payment was successful, update user's subscription status
+        await updateSubscriptionStatus();
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Payment Failed",
+          text2: "There was an issue with your payment. Please try again.",
+          position: "bottom",
+        });
+      }
+    } catch (error) {
+      console.error("Payment error:", error);
+      setLoading(false);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "An error occurred during payment. Please try again.",
+        position: "bottom",
+      });
+    }
+  };
+
+  const updateSubscriptionStatus = async () => {
+    try {
+      const register_no = await SecureStore.getItem("register_no");
+      const res = await loginUser(register_no);
+      console.log("Login response after payment:", res);
+
+      if (res?.user) {
+        await SecureStore.setItem("register_no", register_no);
+        await SecureStore.setItem("studentId", res.user.id);
+
+        if (res.user.subscription) {
+          // If subscription is now true, go to OTP
+          router.replace("/otp");
+        } else {
+          // This shouldn't happen if payment was successful
+          Toast.show({
+            type: "error",
+            text1: "Error",
+            text2: "Subscription not activated. Please contact support.",
+            position: "bottom",
+          });
+        }
+      } else {
+        throw new Error("Failed to verify subscription status");
+      }
+    } catch (error) {
+      console.error("Update subscription error:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to verify subscription status. Please check your account or contact support.",
+        position: "bottom",
+      });
     }
   };
 
