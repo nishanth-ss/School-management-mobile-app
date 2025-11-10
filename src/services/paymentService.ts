@@ -23,20 +23,32 @@ API.interceptors.request.use(async (config) => {
   return config;
 });
 
-export const createOrder = async (studentId: string, amount: number) => {
-
+export const createOrder = async (studentId: string, amount: number, subscription: boolean = false) => {
   if(!getBaseUrl().includes("localhost")){
     updateAxiosBaseURL();
   }
+  
   try {
-    console.log("Calling createOrder with URL:", API.defaults.baseURL + "/payment/create");
-    const { data } = await API.post("/payment/create", { studentId, amount });
-    console.log("Order created:", data);
+    const endpoint = subscription ? "/payment/create" : "/payment/parent/create";
+    const url = API.defaults.baseURL + endpoint;
+    console.log("Calling createOrder with URL:", url);
     
+    const { data } = await API.post(endpoint, { 
+      studentId, 
+      amount,
+      // Add any additional required fields here
+    });
+    
+    console.log("Order created:", data);
     return data;
   } catch (e: any) {
     console.error("createOrder failed:", e);
-    Toast.show({ type: "error", text1: "Error", text2: "Failed to create order" });
+    const errorMessage = e.response?.data?.message || "Failed to create order";
+    Toast.show({ 
+      type: "error", 
+      text1: "Error", 
+      text2: errorMessage 
+    });
     throw e;
   }
 };
@@ -45,9 +57,12 @@ export const verifyPayment = async (payload: {
   razorpay_order_id: string;
   razorpay_payment_id: string;
   razorpay_signature: string;
+  subscription: boolean;
 }) => {
   try {
-    await API.post("/payment/verify", {...payload,studentId: await SecureStore.getItemAsync("studentId")});
+    const url = payload.subscription ? "/payment/verify" : "/payment/parent/verify";
+    const {data} = await API.post(url, {...payload,studentId: await SecureStore.getItemAsync("studentId")});
+    return data;
   } catch (e: any) {
     console.error("verifyPayment failed:", e);
     Toast.show({ type: "error", text1: "Error", text2: "Payment verification failed" });

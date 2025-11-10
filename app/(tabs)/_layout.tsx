@@ -1,8 +1,8 @@
 // app/(tabs)/_layout.tsx
 import { Tabs, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { CreditCard, LogOut, User } from "lucide-react-native";
-import { useEffect, useState } from "react";
+import { CreditCard, History, LogOut, User } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import { ActivityIndicator, TouchableOpacity } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -17,25 +17,28 @@ export default function TabLayout() {
       try {
         const token = await SecureStore.getItemAsync("authToken");
         const regNo = await SecureStore.getItemAsync("register_no");
+
         if (!token || !regNo) {
-          // ⛔ No token → go to login
-          router.replace("/login");
+          router.replace({ pathname: "/login" });
+          return;
         }
       } catch (err) {
-        console.error("Error checking auth:", err);
-        router.replace("/login");
+        console.error("Auth check failed:", err);
+        router.replace({ pathname: "/login" });
       } finally {
         setLoading(false);
       }
     };
+
     checkAuth();
   }, []);
 
-  const handleLogout = () => {
-   SecureStore.deleteItemAsync("register_no");
-   SecureStore.deleteItemAsync("token");
-   router.replace("/login");
+  const handleLogout = async () => {
+    await SecureStore.deleteItemAsync("authToken");
+    await SecureStore.deleteItemAsync("register_no");
+    router.replace({ pathname: "/login" });
   };
+
 
   if (loading) {
     return <ActivityIndicator size="large" color="#40407a" />;
@@ -51,8 +54,8 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: "#40407a",
           borderTopWidth: 0.5,
-          height: 60 + insets.bottom, 
-          paddingBottom: insets.bottom, 
+          height: 60 + insets.bottom,
+          paddingBottom: insets.bottom,
           paddingTop: 5,
           borderTopColor: "rgba(255,255,255,0.2)",
         },
@@ -82,6 +85,16 @@ export default function TabLayout() {
         name="transaction"
         options={{
           title: "Transaction",
+          tabBarIcon: ({ color, size }) => <History color={color} size={size} />,
+          headerStyle: { backgroundColor: "#40407a" },
+          headerTitleStyle: { color: "#fff" },
+        }}
+      />
+
+      <Tabs.Screen
+        name="payment"
+        options={{
+          title: "Payment",
           tabBarIcon: ({ color, size }) => <CreditCard color={color} size={size} />,
           headerStyle: { backgroundColor: "#40407a" },
           headerTitleStyle: { color: "#fff" },

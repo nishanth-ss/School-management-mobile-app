@@ -121,7 +121,7 @@ export default function LoginScreen() {
                 data={schools}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
-                  <TouchableOpacity onPress={() => handleSelectSchool(item)}>
+                  <TouchableOpacity onPress={() => {handleSelectSchool(item),setRegisterNo("")}}>
                     <Text style={styles.listItem}>{item.name} - {item.location}</Text>
                   </TouchableOpacity>
                 )}
