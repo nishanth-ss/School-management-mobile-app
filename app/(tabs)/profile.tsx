@@ -1,6 +1,7 @@
 import { getStudentProfile } from "@/src/services/studentProfile";
+import { useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -16,6 +17,33 @@ export default function HomeScreen() {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<any>(null);
 
+  const fetchProfileData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const regNo = await SecureStore.getItemAsync("register_no");
+      if (!regNo) {
+        setLoading(false);
+        return;
+      }
+      const res = await getStudentProfile(regNo);
+      console.log("Profile data:", res.data);
+      if (res?.data) {
+        setData(res.data);
+      }
+    } catch (error) {
+      console.error("Error fetching profile data:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch data when the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfileData();
+    }, [fetchProfileData])
+  );
+
   const getStudentProfileData = async () => {
     try {
       const regNo = await SecureStore.getItemAsync("register_no");
@@ -25,6 +53,7 @@ export default function HomeScreen() {
       }
 
       const res = await getStudentProfile(regNo || "");
+      
       // ✅ Guard for empty or undefined response
       console.log(res.data);
       if (res && res.data) {

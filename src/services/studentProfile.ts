@@ -1,6 +1,6 @@
 // app/services/studentService.ts
 
-import { getBaseUrl } from "@/src/api/apiConfig";
+import { getBaseUrl, loadBaseUrl } from "@/src/api/apiConfig";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import Toast from "react-native-toast-message";
@@ -38,7 +38,9 @@ export const getStudentProfile = async (regNo: string) => {
     return;
   }
   try {
-    const baseUrl = getBaseUrl().trim();
+    const check = await loadBaseUrl();
+    const baseUrl = await getBaseUrl().trim();
+    
     const token = await SecureStore.getItemAsync("authToken");
     const url = `${baseUrl}/student/profile/${regNo}`;
 

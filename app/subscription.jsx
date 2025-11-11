@@ -22,7 +22,7 @@ export default function SubscriptionScreen() {
       const amount = 100; // ₹100 → 10000 paise
       console.log("studentId", studentId);
 
-      const ok = await startPayment(studentId, amount);
+      const ok = await startPayment(studentId, amount,true);
       setLoading(false);
 
       if (ok) {

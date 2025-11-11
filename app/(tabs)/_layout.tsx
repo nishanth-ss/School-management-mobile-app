@@ -12,32 +12,37 @@ export default function TabLayout() {
 
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const token = await SecureStore.getItemAsync("authToken");
-        const regNo = await SecureStore.getItemAsync("register_no");
+useEffect(() => {
+  const checkAuth = async () => {
+    try {
+      const token = await SecureStore.getItemAsync("authToken");
+      const regNo = await SecureStore.getItemAsync("register_no");
 
-        if (!token || !regNo) {
-          router.replace({ pathname: "/login" });
-          return;
-        }
-      } catch (err) {
-        console.error("Auth check failed:", err);
+      if (!token || !regNo) {
         router.replace({ pathname: "/login" });
-      } finally {
-        setLoading(false);
+        return;
       }
-    };
 
-    checkAuth();
-  }, []);
-
-  const handleLogout = async () => {
-    await SecureStore.deleteItemAsync("authToken");
-    await SecureStore.deleteItemAsync("register_no");
-    router.replace({ pathname: "/login" });
+    } catch (error) {
+      console.error("Auth error:", error);
+      router.replace({ pathname: "/login" });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  checkAuth();
+}, []);
+
+const handleLogout = async () => {
+  await SecureStore.deleteItemAsync("authToken");
+  await SecureStore.deleteItemAsync("register_no");
+  await SecureStore.deleteItemAsync("studentId");
+  await SecureStore.deleteItemAsync("subscription");
+  await SecureStore.deleteItemAsync("baseUrl");
+  router.replace({ pathname: "/login" });
+};
+
 
 
   if (loading) {

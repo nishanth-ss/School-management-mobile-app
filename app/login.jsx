@@ -1,7 +1,7 @@
 import { loadBaseUrl, setBaseUrl } from "@/src/api/apiConfig";
 import { Stack, useRouter } from "expo-router";
 import * as SecureStore from 'expo-secure-store';
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { loginUser, searchLocation } from "../src/services/authService";
@@ -21,11 +21,19 @@ export default function LoginScreen() {
   const [schools, setSchools] = useState([]);
   const [selectedSchool, setSelectedSchool] = useState(null);
   const router = useRouter();
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const initialize = async () => {
       try {
-        await loadBaseUrl();
+        // Load the saved base URL when component mounts
+        const savedUrl = await loadBaseUrl();
+        console.log('Loaded base URL:', savedUrl);
+        
+        // If we have a saved URL, update the selected school state
+        if (savedUrl && savedUrl !== 'https://localhost:5000') {
+          // setSelectedSchool({ baseUrl: savedUrl });
+        }
       } catch (error) {
         console.error('Failed to load base URL:', error);
       }
@@ -34,29 +42,30 @@ export default function LoginScreen() {
     initialize();
   }, []);
 
-  const debouncedSearch = useRef(
-    debounce(async (text) => {
-      try {
-        const res = await searchLocation(text);
-        console.log("Search response:", res);
-
-        if (res?.data?.length) {
-          setSchools(res.data);
-        } else {
-          setSchools([]);
-        }
-      } catch (err) {
-        console.error("Search error:", err);
+  const debouncedSearch = useCallback(
+  debounce(async (text) => {
+    try {
+      console.log('Search text:', text);
+      const res = await searchLocation(text);
+      if (res?.data?.length) {
+        setSchools(res.data);
+      } else {
         setSchools([]);
       }
-    }, 500) // ← 500ms delay
-  ).current;
+    } catch (err) {
+      console.error("Search error:", err);
+      setSchools([]);
+    }
+  }, 500),
+  []
+);
+
 
 
   const handleSearch = (text) => {
     setSearch(text);
 
-    if (text.length >= 2) {
+    if (text.length) {
       debouncedSearch(text);
     } else {
       setSchools([]);
@@ -64,15 +73,35 @@ export default function LoginScreen() {
   };
 
   const handleSelectSchool = async (school) => {
-    console.log(school);
-    setSelectedSchool(school);
-    setSchools([]);
-    setSearch(school.name);
-    await setBaseUrl(school.baseUrl.trim());
+    console.log('Selected school:', school);
+    const baseUrl = school.baseUrl.trim();
+    console.log('Setting base URL to:', baseUrl);
+    
+    try {
+      // Save the base URL first
+      await setBaseUrl(baseUrl);
+      await SecureStore.setItemAsync("baseUrl", baseUrl);
+      
+      // Update the UI state
+      setSelectedSchool(school);
+      setSchools([]);
+      setSearch(school.name);
+      
+      console.log('Base URL set successfully');
+    } catch (error) {
+      console.error('Failed to set base URL:', error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to set school URL. Please try again.",
+        position: "bottom",
+      });
+    }
   };
 
   const handleLogin = async () => {
     try {
+      setLoading(true);
       const res = await loginUser(register_no);
       console.log("Login response:", res);
       if (res?.user) {
@@ -99,8 +128,12 @@ export default function LoginScreen() {
         text2: "Something went wrong. Please try again later.",
         position: "bottom",
       });
+    } finally {
+      setLoading(false);
     }
   };
+
+  console.log("Selected school:", selectedSchool);
 
   return (
     <View style={styles.container}>
@@ -121,7 +154,7 @@ export default function LoginScreen() {
                 data={schools}
                 keyExtractor={(item) => item._id}
                 renderItem={({ item }) => (
-                  <TouchableOpacity onPress={() => {handleSelectSchool(item),setRegisterNo("")}}>
+                  <TouchableOpacity onPress={() => { handleSelectSchool(item), setRegisterNo(""),setSelectedSchool(null) }}>
                     <Text style={styles.listItem}>{item.name} - {item.location}</Text>
                   </TouchableOpacity>
                 )}
@@ -146,7 +179,7 @@ export default function LoginScreen() {
               <Text style={styles.buttonText}>Login</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.btnlogin} onPress={() => {setSelectedSchool(null),setSearch("")}}>
+            <TouchableOpacity style={styles.btnlogin} onPress={() => { setSelectedSchool(null), setSearch("") }}>
               <Text style={styles.buttonTextLogin}>Change School</Text>
             </TouchableOpacity>
           </>
@@ -223,7 +256,7 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     textAlign: "center"
   },
-  btnlogin:{
+  btnlogin: {
     marginTop: 20,
     color: "#40407a",
     fontSize: 16,
@@ -236,10 +269,10 @@ const styles = StyleSheet.create({
     width: "100%",
     padding: 10,
   },
-  buttonTextLogin:{
+  buttonTextLogin: {
     color: "#40407a",
     fontSize: 16,
     fontWeight: "600",
-    textAlign: "center",    
+    textAlign: "center",
   }
 });

@@ -38,31 +38,30 @@ export default function OtpScreen() {
     }
   };
 
-  const handleVerifyOtp = async () => {
-    const enteredOtp = otp.join("");
-    const res = await loginWithOtp(register_no,enteredOtp);
-    console.log("Login response:", res);
-    if (res?.user) {
-      await SecureStore.setItemAsync("authToken", res.token);
-      await SecureStore.setItemAsync("studentId", res?.user?.id);
-      await SecureStore.setItemAsync(
-        "subscription",
-        res?.user?.subscription ? "true" : "false"
-      );
-      if(res?.user?.subscription){
-        router.replace("/profile");
-      }else{
-        router.replace("/subscription");
-      }
+ const handleVerifyOtp = async () => {
+  const enteredOtp = otp.join("");
+  const res = await loginWithOtp(register_no || "", enteredOtp);
+
+  if (res?.user) {
+    await SecureStore.setItemAsync("authToken", res.token);
+    await SecureStore.setItemAsync("register_no", register_no || "");
+    await SecureStore.setItemAsync("studentId", res?.user?.id);
+    await SecureStore.setItemAsync("subscription", res.user.subscription ? "true" : "false");
+
+    if (res.user.subscription) {
+      router.replace("/(tabs)/profile");
     } else {
-      Toast.show({
-        type: "error",
-        text1: res?.message,
-        text2: "Login Failed",
-        position: "bottom",
-      });
+      router.replace("/subscription");
     }
-  };
+  } else {
+    Toast.show({
+      type: "error",
+      text1: res?.message,
+      text2: "Login Failed",
+    });
+  }
+};
+
 
   return (
     <View style={styles.container}>

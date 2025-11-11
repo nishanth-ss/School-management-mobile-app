@@ -1,6 +1,7 @@
 import { getStudentTransactions } from "@/src/services/studentProfile";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
+import { useFocusEffect } from '@react-navigation/native';
 import {
   ActivityIndicator,
   FlatList,
@@ -20,22 +21,35 @@ export default function TransactionsScreen() {
     totalPages: 1,
   });
 
-  const fetchTransactions = async (page: number) => {
-    const regNo = await SecureStore.getItemAsync("register_no");
+  const fetchTransactions = useCallback(async (page: number) => {
     try {
-      const res = await getStudentTransactions(regNo || "", page, pagination.pageSize);
+      setLoading(true);
+      const regNo = await SecureStore.getItemAsync("register_no");
+      if (!regNo) {
+        setLoading(false);
+        return;
+      }
+      const res = await getStudentTransactions(regNo, page, pagination.pageSize);
+      console.log("Transactions data:", res);
       setData(res.transactions || []);
       setPagination((prev) => ({
         ...prev,
-        page: pagination.page,
-        totalPages: res.totalPages || Math.ceil(res.totalPages / pagination.pageSize) || 1,
+        page: page,
+        totalPages: res.totalPages || Math.ceil((res.totalItems || 0) / pagination.pageSize) || 1,
       }));
     } catch (err) {
       console.error("Fetch Error:", err);
     } finally {
       setLoading(false);
     }
-  };
+  }, [pagination.pageSize]);
+
+  // Fetch data when the screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      fetchTransactions(1);
+    }, [fetchTransactions])
+  );
 
   // 🔁 Re-fetch data whenever page changes
   useEffect(() => {
