@@ -31,7 +31,6 @@ export const createOrder = async (studentId: string, amount: number, subscriptio
   try {
     const endpoint = subscription ? "/payment/create" : "/payment/parent/create";
     const url = API.defaults.baseURL + endpoint;
-    console.log("Calling createOrder with URL:", url);
     
     const { data } = await API.post(endpoint, { 
       studentId, 
@@ -39,10 +38,8 @@ export const createOrder = async (studentId: string, amount: number, subscriptio
       // Add any additional required fields here
     });
     
-    console.log("Order created:", data);
     return data;
   } catch (e: any) {
-    console.error("createOrder failed:", e);
     const errorMessage = e.response?.data?.message || "Failed to create order";
     Toast.show({ 
       type: "error", 
@@ -64,7 +61,6 @@ export const verifyPayment = async (payload: {
     const {data} = await API.post(url, {...payload,studentId: await SecureStore.getItemAsync("studentId")});
     return data;
   } catch (e: any) {
-    console.error("verifyPayment failed:", e);
     Toast.show({ type: "error", text1: "Error", text2: "Payment verification failed" });
     throw e;
   }

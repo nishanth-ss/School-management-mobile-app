@@ -5,7 +5,6 @@ import { useState } from "react";
 import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import Toast from "react-native-toast-message";
-import { getBaseUrl } from "../src/api/apiConfig";
 import { useRazorpay } from "../src/hooks/useRazorpay";
 import { loginUser } from "../src/services/authService";
 
@@ -15,12 +14,10 @@ export default function SubscriptionScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleSubscribe = async () => {
-    console.log(getBaseUrl());
     setLoading(true);
     try {
       const studentId = await SecureStore.getItem("studentId");
       const amount = 100; // ₹100 → 10000 paise
-      console.log("studentId", studentId);
 
       const ok = await startPayment(studentId, amount,true);
       setLoading(false);
@@ -37,7 +34,6 @@ export default function SubscriptionScreen() {
         });
       }
     } catch (error) {
-      console.error("Payment error:", error);
       setLoading(false);
       Toast.show({
         type: "error",
@@ -52,7 +48,6 @@ export default function SubscriptionScreen() {
     try {
       const register_no = await SecureStore.getItem("register_no");
       const res = await loginUser(register_no);
-      console.log("Login response after payment:", res);
 
       if (res?.user) {
         await SecureStore.setItem("register_no", register_no);
@@ -74,7 +69,6 @@ export default function SubscriptionScreen() {
         throw new Error("Failed to verify subscription status");
       }
     } catch (error) {
-      console.error("Update subscription error:", error);
       Toast.show({
         type: "error",
         text1: "Error",

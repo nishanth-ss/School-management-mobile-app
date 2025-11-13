@@ -11,7 +11,6 @@ const handleApiError = (error: any, context: string) => {
   if (axios.isAxiosError(error)) {
     if (error.response) {
       message = error.response.data?.message || `Server error while fetching ${context}`;
-      console.error(`❌ [${context}] Server Error:`, error.response.data);
     } else if (error.request) {
       message = `No response from server while fetching ${context}`;
     } else {

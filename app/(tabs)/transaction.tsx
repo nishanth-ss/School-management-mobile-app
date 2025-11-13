@@ -1,7 +1,7 @@
 import { getStudentTransactions } from "@/src/services/studentProfile";
+import { useFocusEffect } from '@react-navigation/native';
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useState } from "react";
-import { useFocusEffect } from '@react-navigation/native';
 import {
   ActivityIndicator,
   FlatList,
@@ -11,6 +11,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 export default function TransactionsScreen() {
   const [loading, setLoading] = useState(true);
@@ -30,7 +31,6 @@ export default function TransactionsScreen() {
         return;
       }
       const res = await getStudentTransactions(regNo, page, pagination.pageSize);
-      console.log("Transactions data:", res);
       setData(res.transactions || []);
       setPagination((prev) => ({
         ...prev,
@@ -38,7 +38,12 @@ export default function TransactionsScreen() {
         totalPages: res.totalPages || Math.ceil((res.totalItems || 0) / pagination.pageSize) || 1,
       }));
     } catch (err) {
-      console.error("Fetch Error:", err);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to fetch transactions. Please try again.",
+        position: "bottom",
+      });
     } finally {
       setLoading(false);
     }
@@ -63,6 +68,7 @@ export default function TransactionsScreen() {
     const amount = item.totalAmount || item.depositAmount || 0;
     const source = item.source || "N/A";
     const status = item.status || (item.is_reversed ? "Reversed" : "Completed");
+    const hasProducts = item.products && item.products.length > 0;
 
     return (
       <View style={styles.card}>
@@ -70,14 +76,41 @@ export default function TransactionsScreen() {
           <Text style={styles.label}>Date:</Text>
           <Text style={styles.value}>{date}</Text>
         </View>
+        
+        {hasProducts ? (
+          <View style={styles.productsContainer}>
+            <Text style={[styles.label, { marginBottom: 5 }]}>Products:</Text>
+            {item.products.map((product: any, index: number) => {
+              // Get product details from productId object or use direct properties as fallback
+              const productName = product.productId?.itemName || product.itemName || 'Product';
+              const productPrice = product.productId?.price || product.price || 0;
+              const quantity = product.quantity || 1;
+              
+              return (
+                <View key={index} style={styles.productItem}>
+                  <Text style={styles.productName}>
+                    {productName} 
+                    <Text style={styles.productQuantity}> × {quantity}</Text>
+                  </Text>
+                  <Text style={styles.productPrice}>
+                    ₹{(productPrice * quantity).toFixed(2)}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
+        
         <View style={styles.row}>
-          <Text style={styles.label}>Amount:</Text>
-          <Text style={styles.value}>{amount}</Text>
+          <Text style={styles.label}>Total Amount:</Text>
+          <Text style={[styles.value, styles.totalAmount]}>₹{amount.toFixed(2)}</Text>
         </View>
+        
         <View style={styles.row}>
           <Text style={styles.label}>Source:</Text>
           <Text style={styles.value}>{source}</Text>
         </View>
+        
         <View style={styles.row}>
           <Text
             style={[
@@ -170,13 +203,44 @@ const styles = StyleSheet.create({
     backgroundColor: "#f8f9ff",
     borderRadius: 10,
     padding: 15,
-    marginBottom: 12,
+    marginBottom: 16,
     borderLeftWidth: 4,
     borderLeftColor: "#40407a",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+  },
+  productsContainer: {
+    marginVertical: 8,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: '#e0e0e0',
+  },
+  productItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginVertical: 4,
+    paddingHorizontal: 8,
+  },
+  productName: {
+    flex: 1,
+    color: '#333',
+    fontWeight: '500',
+  },
+  productQuantity: {
+    color: '#666',
+    fontSize: 13,
+  },
+  productPrice: {
+    color: '#2196F3',
+    fontWeight: '600',
+  },
+  totalAmount: {
+    color: '#2196F3',
+    fontWeight: 'bold',
+    fontSize: 15,
   },
   row: {
     flexDirection: "row",

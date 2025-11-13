@@ -13,7 +13,6 @@ export const useRazorpay = () => {
 
       // 2. Create order
       const { order } = await createOrder(studentId, amount, subscription);
-      console.log("Order ID:", order.id);
 
       const options = {
         key: "rzp_test_qXH0h7SCch7OVM",
@@ -25,7 +24,6 @@ export const useRazorpay = () => {
         theme: { color: "#40407a" },
         modal: { 
           ondismiss: () => {
-            console.log("Payment dismissed by user");
             Toast.show({
               type: 'info',
               text1: 'Payment Cancelled',
@@ -36,12 +34,10 @@ export const useRazorpay = () => {
         },
       };
 
-      console.log("Opening Razorpay with:", options);
 
       try {
         // 3. Open Razorpay checkout
         const data = await RazorpayCheckout.open(options);
-        console.log("Payment Success:", data);
 
         // 4. Verify payment on your server
         await verifyPayment({
@@ -58,12 +54,9 @@ export const useRazorpay = () => {
         });
         return true;
       } catch (error: any) {
-        console.log("Razorpay Checkout Error:", error);
-        
         // Handle different error cases
         if (error.code === 0 || error.code === "0") {
           // User closed the payment form
-          console.log("User closed the payment form");
           return false;
         }
         

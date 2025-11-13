@@ -28,14 +28,13 @@ export default function LoginScreen() {
       try {
         // Load the saved base URL when component mounts
         const savedUrl = await loadBaseUrl();
-        console.log('Loaded base URL:', savedUrl);
         
         // If we have a saved URL, update the selected school state
         if (savedUrl && savedUrl !== 'https://localhost:5000') {
           // setSelectedSchool({ baseUrl: savedUrl });
         }
       } catch (error) {
-        console.error('Failed to load base URL:', error);
+        // console.log('Failed to load base URL:', error);
       }
     };
 
@@ -45,7 +44,6 @@ export default function LoginScreen() {
   const debouncedSearch = useCallback(
   debounce(async (text) => {
     try {
-      console.log('Search text:', text);
       const res = await searchLocation(text);
       if (res?.data?.length) {
         setSchools(res.data);
@@ -53,7 +51,7 @@ export default function LoginScreen() {
         setSchools([]);
       }
     } catch (err) {
-      console.error("Search error:", err);
+      // console.error("Search error:", err);
       setSchools([]);
     }
   }, 500),
@@ -73,9 +71,7 @@ export default function LoginScreen() {
   };
 
   const handleSelectSchool = async (school) => {
-    console.log('Selected school:', school);
     const baseUrl = school.baseUrl.trim();
-    console.log('Setting base URL to:', baseUrl);
     
     try {
       // Save the base URL first
@@ -87,9 +83,7 @@ export default function LoginScreen() {
       setSchools([]);
       setSearch(school.name);
       
-      console.log('Base URL set successfully');
     } catch (error) {
-      console.error('Failed to set base URL:', error);
       Toast.show({
         type: "error",
         text1: "Error",
@@ -103,7 +97,6 @@ export default function LoginScreen() {
     try {
       setLoading(true);
       const res = await loginUser(register_no);
-      console.log("Login response:", res);
       if (res?.user) {
         await SecureStore.setItemAsync("register_no", register_no);
         await SecureStore.setItemAsync("studentId", res?.user?.id);
@@ -121,7 +114,6 @@ export default function LoginScreen() {
         });
       }
     } catch (error) {
-      console.error("Unexpected login error:", error);
       Toast.show({
         type: "error",
         text1: "Error",
@@ -132,8 +124,6 @@ export default function LoginScreen() {
       setLoading(false);
     }
   };
-
-  console.log("Selected school:", selectedSchool);
 
   return (
     <View style={styles.container}>

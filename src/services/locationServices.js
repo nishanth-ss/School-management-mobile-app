@@ -7,7 +7,6 @@ export const searchLocation = async (query) => {
     const res = await axios.get(`${LOCATION_API}?search=${query}`);
     return res.data;
   } catch (error) {
-    console.error("Location search error:", error);
     throw error;
   }
 };

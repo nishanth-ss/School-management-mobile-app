@@ -24,7 +24,6 @@ useEffect(() => {
       }
 
     } catch (error) {
-      console.error("Auth error:", error);
       router.replace({ pathname: "/login" });
     } finally {
       setLoading(false);

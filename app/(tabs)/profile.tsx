@@ -11,6 +11,7 @@ import {
   View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 import { BASE_URL } from "../../src/utils/config";
 
 export default function HomeScreen() {
@@ -26,12 +27,16 @@ export default function HomeScreen() {
         return;
       }
       const res = await getStudentProfile(regNo);
-      console.log("Profile data:", res.data);
       if (res?.data) {
         setData(res.data);
       }
     } catch (error) {
-      console.error("Error fetching profile data:", error);
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to fetch profile data. Please try again.",
+        position: "bottom",
+      });
     } finally {
       setLoading(false);
     }
@@ -55,7 +60,6 @@ export default function HomeScreen() {
       const res = await getStudentProfile(regNo || "");
       
       // ✅ Guard for empty or undefined response
-      console.log(res.data);
       if (res && res.data) {
         setData(res.data);
       } else {
