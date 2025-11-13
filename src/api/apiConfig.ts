@@ -11,12 +11,12 @@ export const loadBaseUrl = async () => {
     if (saved) {
       BASE_URL = saved;
     } else {
-      Toast.show({
-        type: "info",
-        text1: "Info",
-        text2: "No base URL saved, using default: " + BASE_URL,
-        position: "bottom",
-      });
+      // Toast.show({
+      //   type: "info",
+      //   text1: "Info",
+      //   text2: "No base URL saved, using default: " + BASE_URL,
+      //   position: "bottom",
+      // });
     }
   } catch (err) {
     Toast.show({
